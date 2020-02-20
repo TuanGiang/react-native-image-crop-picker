@@ -308,28 +308,28 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 dataFile = createImageFile();
             }
 
-            Intent cameraIntent = new Intent(intent);
-
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                mCameraCaptureURI = Uri.fromFile(dataFile);
-            } else {
-                mCameraCaptureURI = FileProvider.getUriForFile(activity,
-                        activity.getApplicationContext().getPackageName() + ".provider",
-                        dataFile);
-            }
-
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraCaptureURI);
-
-            if (this.useFrontCamera) {
-                cameraIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
-                cameraIntent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
-                cameraIntent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
-            }
-
-            if (cameraIntent.resolveActivity(activity.getPackageManager()) == null) {
-                resultCollector.notifyProblem(E_CANNOT_LAUNCH_CAMERA, "Cannot launch camera");
-                return;
-            }
+            Intent cameraIntent = new Intent(activity, CaptureActivity.class);
+//
+//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+//                mCameraCaptureURI = Uri.fromFile(dataFile);
+//            } else {
+//                mCameraCaptureURI = FileProvider.getUriForFile(activity,
+//                        activity.getApplicationContext().getPackageName() + ".provider",
+//                        dataFile);
+//            }
+//
+//            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraCaptureURI);
+//
+//            if (this.useFrontCamera) {
+//                cameraIntent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+//                cameraIntent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1);
+//                cameraIntent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true);
+//            }
+//
+//            if (cameraIntent.resolveActivity(activity.getPackageManager()) == null) {
+//                resultCollector.notifyProblem(E_CANNOT_LAUNCH_CAMERA, "Cannot launch camera");
+//                return;
+//            }
 
             activity.startActivityForResult(cameraIntent, CAMERA_PICKER_REQUEST);
         } catch (Exception e) {
