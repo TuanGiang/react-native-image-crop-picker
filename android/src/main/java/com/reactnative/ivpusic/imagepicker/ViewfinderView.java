@@ -2,6 +2,7 @@ package com.reactnative.ivpusic.imagepicker;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -26,6 +27,13 @@ public final class ViewfinderView extends View {
     private final String messageLeveled;
 
     private final float textSize;
+
+    private int left, top, right, bottom;
+
+    public Rect getRect() {
+        return new Rect(left, top, right, bottom);
+    }
+
 
     // This constructor is used when the class is built from an XML resource.
     public ViewfinderView(Context context, AttributeSet attrs) {
@@ -55,7 +63,19 @@ public final class ViewfinderView extends View {
         int width = canvas.getWidth();
         int height = canvas.getHeight();
 
-        Rect frame = new Rect(0, height / 3, width, (height * 2) / 3);
+        if (this.getContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+            left = 0;
+            top = height / 3;
+            right = width;
+            bottom = (height * 2) / 3;
+        } else {
+            left = width / 4;
+            top = height / 5;
+            right = (width * 3) / 4;
+            bottom = (height * 4) / 5;
+        }
+
+        Rect frame = new Rect(left, top, right, bottom);
 
         // Draw the exterior (i.e. outside the framing rect) darkened
         paint.setColor(maskColor);
@@ -72,7 +92,7 @@ public final class ViewfinderView extends View {
 
     private void drawMessage(String message, String messageLeveled, Canvas canvas) {
         int xPos = (canvas.getWidth() / 2);
-        int yPos = (int) ((canvas.getHeight() / 4) - ((textPaint.descent() + textPaint.ascent()) / 2));
+        int yPos = (int) ((top / 2) - ((textPaint.descent() + textPaint.ascent()) / 2));
         //((textPaint.descent() + textPaint.ascent()) / 2) is the distance from the baseline to the center.
 
         canvas.drawText(message, xPos, yPos, textPaint);

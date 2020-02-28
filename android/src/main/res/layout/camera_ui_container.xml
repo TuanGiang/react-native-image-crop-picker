@@ -22,34 +22,17 @@
     android:layout_height="match_parent"
     android:layoutDirection="ltr">
 
-    <!-- Camera control and gallery buttons -->
-    <Button
-        android:id="@+id/camera_switch_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:scaleType="fitCenter"
-        android:text="Switch"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent" />
 
-    <Button
+    <ImageButton
         android:id="@+id/camera_capture_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Capture"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/round_button_states"
+        android:src="@android:drawable/ic_menu_send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
-    <Button
-        android:id="@+id/photo_view_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:scaleType="fitCenter"
-        android:text="View"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

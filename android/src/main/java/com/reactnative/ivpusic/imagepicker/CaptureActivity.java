@@ -1,13 +1,20 @@
 package com.reactnative.ivpusic.imagepicker;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Size;
+import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.File;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -17,7 +24,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.CameraX;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.Preview;
@@ -44,16 +50,26 @@ public class CaptureActivity extends AppCompatActivity {
     private ImageAnalysis imageAnalyzer;
     private Executor mainExecutor;
     private Executor analysisExecutor;
+    ViewfinderView viewfinderView;
     private Camera camera;
+    String filePath;
+
+    Boolean canCapture = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
+        filePath = getIntent().getStringExtra("FILE_PATH");
         container = findViewById(R.id.camera_container);
         viewFinder = findViewById(R.id.view_finder);
+        viewfinderView = findViewById(R.id.finderView);
+
         mainExecutor = ContextCompat.getMainExecutor(this.getApplicationContext());
         analysisExecutor = Executors.newSingleThreadExecutor();
+
+        displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        displayManager.registerDisplayListener(displayListener, null);
 
         viewFinder.post(new Runnable() {
             @Override
@@ -86,7 +102,15 @@ public class CaptureActivity extends AppCompatActivity {
         @Override
         public void onDisplayChanged(int id) {
             if (displayId != id) {
-                //imageCapture ?.setTargetRotation(view.display.rotation)
+                Display display = ((WindowManager) getSystemService(WINDOW_SERVICE))
+                        .getDefaultDisplay();
+                if (imageCapture != null && display != null) {
+                    imageCapture.setTargetRotation(display.getRotation());
+                }
+                if (imageAnalyzer != null && display != null) {
+                    imageAnalyzer.setTargetRotation(display.getRotation());
+                }
+
             }
         }
     };
@@ -105,6 +129,30 @@ public class CaptureActivity extends AppCompatActivity {
         updateCameraUi();
     }
 
+
+    private ImageCapture.OnImageSavedCallback imageSavedListener = new ImageCapture.OnImageSavedCallback() {
+        @Override
+        public void onImageSaved(@NonNull File file) {
+            canCapture = true;
+            Intent result = new Intent();
+            result.putExtra("FILE_PATH", file.getAbsolutePath());
+            Rect rect = viewfinderView.getRect();
+            result.putExtra("LEFT", rect.left);
+            result.putExtra("TOP", rect.top);
+            result.putExtra("RIGHT", rect.right);
+            result.putExtra("BOTTOM", rect.bottom);
+            setResult(RESULT_OK, result);
+            setResult(RESULT_OK, result);
+            finish();
+        }
+
+        @Override
+        public void onError(int imageCaptureError, @NonNull String message, @Nullable Throwable cause) {
+            canCapture = true;
+        }
+    };
+
+
     private void updateCameraUi() {
 
         View view = container.findViewById(R.id.camera_ui_container);
@@ -116,36 +164,21 @@ public class CaptureActivity extends AppCompatActivity {
 
         // Listener for button used to capture photo
 
-//        controls.findViewById(R.id.camera_capture_button).setOnClickListener {
-//
-//            // Get a stable reference of the modifiable image capture use case
-//            imageCapture?.let { imageCapture ->
-//
-//                    // Create output file to hold the image
-//                    val photoFile = createFile(outputDirectory, FILENAME, PHOTO_EXTENSION)
-//
-//                // Setup image capture metadata
-//                val metadata = Metadata().apply {
-//
-//                    // Mirror image when using the front camera
-//                    isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
-//                }
-//
-//                // Setup image capture listener which is triggered after photo has been taken
-//                imageCapture.takePicture(photoFile, metadata, mainExecutor, imageSavedListener)
-//
-//                // We can only change the foreground Drawable using API level 23+ API
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//
-//                    // Display flash animation to indicate that photo was captured
-//                    container.postDelayed({
-//                            container.foreground = ColorDrawable(Color.WHITE)
-//                            container.postDelayed(
-//                                    { container.foreground = null }, ANIMATION_FAST_MILLIS)
-//                    }, ANIMATION_SLOW_MILLIS)
-//                }
-//            }
-//        }
+        controls.findViewById(R.id.camera_capture_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (imageCapture != null && canCapture) {
+                    canCapture = false;
+                    File photoFile = new File(filePath);
+
+                    // Setup image capture metadata
+                    ImageCapture.Metadata metadata = new ImageCapture.Metadata();
+                    metadata.setReversedHorizontal(lensFacing == CameraSelector.LENS_FACING_FRONT);
+                    imageCapture.takePicture(photoFile, metadata, mainExecutor, imageSavedListener);
+                }
+            }
+        });
+
 
 //        // Listener for button used to switch cameras
 //        controls.findViewById<ImageButton>(R.id.camera_switch_button).setOnClickListener {
@@ -192,8 +225,8 @@ public class CaptureActivity extends AppCompatActivity {
                     // Preview
                     Preview preview = new Preview.Builder()
                             // We request aspect ratio but no resolution
-                            .setTargetAspectRatio(screenAspectRatio)
                             // Set initial target rotation
+                            .setTargetResolution(new Size(1920,1080))
                             .setTargetRotation(rotation)
                             .build();
 
@@ -202,7 +235,7 @@ public class CaptureActivity extends AppCompatActivity {
 
                     // ImageCapture
                     imageCapture = new ImageCapture.Builder()
-                            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                             // We request aspect ratio but no resolution to match preview config, but letting
                             // CameraX optimize for whatever specific resolution best fits requested capture mode
                             .setTargetAspectRatio(screenAspectRatio)
@@ -213,7 +246,7 @@ public class CaptureActivity extends AppCompatActivity {
 
                     imageAnalyzer = new ImageAnalysis.Builder()
                             // We request aspect ratio but no resolution
-                            .setTargetAspectRatio(screenAspectRatio)
+//                            setTargetAspectRatio(screenAspectRatio)
                             // Set initial target rotation, we will have to call this again if rotation changes
                             // during the lifecycle of this use case
                             .setTargetRotation(rotation)
@@ -242,5 +275,11 @@ public class CaptureActivity extends AppCompatActivity {
             }
         }, mainExecutor);
 
+    }
+
+    public static Intent newInstance(Context context, String path) {
+        Intent intent = new Intent(context, CaptureActivity.class);
+        intent.putExtra("FILE_PATH", path);
+        return intent;
     }
 }

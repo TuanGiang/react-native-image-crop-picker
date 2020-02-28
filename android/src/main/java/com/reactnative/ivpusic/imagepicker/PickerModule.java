@@ -17,9 +17,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.webkit.MimeTypeMap;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.FileProvider;
-
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
@@ -47,6 +44,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 
 class PickerModule extends ReactContextBaseJavaModule implements ActivityEventListener {
 
@@ -83,13 +83,16 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
     //Grey 800
     private final String DEFAULT_TINT = "#424242";
+    private final String DEFAULT_TRANSPARENT = "#00000000";
     private String cropperActiveWidgetColor = DEFAULT_TINT;
     private String cropperStatusBarColor = DEFAULT_TINT;
-    private String cropperToolbarColor = DEFAULT_TINT;
+    private String cropperToolbarColor = DEFAULT_TRANSPARENT;
     private String cropperToolbarTitle = null;
 
     //Light Blue 500
     private final String DEFAULT_WIDGET_COLOR = "#03A9F4";
+
+
     private int width = 0;
     private int height = 0;
 
@@ -127,7 +130,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         cropping = options.hasKey("cropping") && options.getBoolean("cropping");
         cropperActiveWidgetColor = options.hasKey("cropperActiveWidgetColor") ? options.getString("cropperActiveWidgetColor") : DEFAULT_TINT;
         cropperStatusBarColor = options.hasKey("cropperStatusBarColor") ? options.getString("cropperStatusBarColor") : DEFAULT_TINT;
-        cropperToolbarColor = options.hasKey("cropperToolbarColor") ? options.getString("cropperToolbarColor") : DEFAULT_TINT;
+        cropperToolbarColor = options.hasKey("cropperToolbarColor") ? options.getString("cropperToolbarColor") : DEFAULT_TRANSPARENT;
         cropperToolbarTitle = options.hasKey("cropperToolbarTitle") ? options.getString("cropperToolbarTitle") : null;
         cropperCircleOverlay = options.hasKey("cropperCircleOverlay") && options.getBoolean("cropperCircleOverlay");
         freeStyleCropEnabled = options.hasKey("freeStyleCropEnabled") && options.getBoolean("freeStyleCropEnabled");
@@ -308,15 +311,15 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 dataFile = createImageFile();
             }
 
-            Intent cameraIntent = new Intent(activity, CaptureActivity.class);
-//
-//            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-//                mCameraCaptureURI = Uri.fromFile(dataFile);
-//            } else {
-//                mCameraCaptureURI = FileProvider.getUriForFile(activity,
-//                        activity.getApplicationContext().getPackageName() + ".provider",
-//                        dataFile);
-//            }
+            Intent cameraIntent = CaptureActivity.newInstance(activity, dataFile.getPath());
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                mCameraCaptureURI = Uri.fromFile(dataFile);
+            } else {
+                mCameraCaptureURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider",
+                        dataFile);
+            }
 //
 //            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mCameraCaptureURI);
 //
@@ -652,7 +655,51 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             uCrop.withAspectRatio(width, height);
         }
 
-        uCrop.start(activity);
+        Intent intent = uCrop.getIntent(activity);
+        intent.setClass(activity, CropActivity.class);
+        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
+    }
+
+    private void startCropping(final Activity activity, final Uri uri, int left, int top, int right, int bottom) {
+        UCrop.Options options = new UCrop.Options();
+        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
+        options.setCompressionQuality(100);
+        options.setCircleDimmedLayer(cropperCircleOverlay);
+        options.setFreeStyleCropEnabled(freeStyleCropEnabled);
+        options.setShowCropGrid(showCropGuidelines);
+        options.setShowCropFrame(showCropFrame);
+        options.setHideBottomControls(hideBottomControls);
+        if (cropperToolbarTitle != null) {
+            options.setToolbarTitle(cropperToolbarTitle);
+        }
+        if (enableRotationGesture) {
+            // UCropActivity.ALL = enable both rotation & scaling
+            options.setAllowedGestures(
+                    UCropActivity.ALL, // When 'scale'-tab active
+                    UCropActivity.ALL, // When 'rotate'-tab active
+                    UCropActivity.ALL  // When 'aspect ratio'-tab active
+            );
+        }
+        if (!disableCropperColorSetters) {
+            configureCropperColors(options);
+        }
+
+        UCrop uCrop = UCrop
+                .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
+                .withOptions(options);
+
+        if (width > 0 && height > 0) {
+            uCrop.withAspectRatio(width, height);
+        }
+
+        Intent intent = uCrop.getIntent(activity);
+        intent.putExtra("LEFT", left);
+        intent.putExtra("TOP", top);
+        intent.putExtra("RIGHT", right);
+        intent.putExtra("BOTTOM", bottom);
+
+        intent.setClass(activity, CropActivity.class);
+        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
     }
 
     private void imagePickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
@@ -704,6 +751,11 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         } else if (resultCode == Activity.RESULT_OK) {
             Uri uri = mCameraCaptureURI;
 
+            int left = data.getIntExtra("LEFT", 0);
+            int top = data.getIntExtra("TOP", 0);
+            int right = data.getIntExtra("RIGHT", 0);
+            int bottom = data.getIntExtra("BOTTOM", 0);
+
             if (uri == null) {
                 resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, "Cannot resolve image url");
                 return;
@@ -712,7 +764,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             if (cropping) {
                 UCrop.Options options = new UCrop.Options();
                 options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-                startCropping(activity, uri);
+                startCropping(activity, uri, left, top, right, bottom);
             } else {
                 try {
                     resultCollector.setWaitCount(1);
