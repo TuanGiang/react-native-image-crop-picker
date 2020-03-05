@@ -13,17 +13,28 @@ android {
   defaultConfig {
         minSdkVersion rootProject.hasProperty('minSdkVersion') ? rootProject.minSdkVersion : DEFAULT_MIN_SDK_VERSION
         targetSdkVersion rootProject.hasProperty('targetSdkVersion') ? rootProject.targetSdkVersion : DEFAULT_TARGET_SDK_VERSION
+        vectorDrawables.useSupportLibrary = true
         versionCode 1
     }
     lintOptions {
         abortOnError false
     }
+    resourcePrefix 'ucrop_'
+
+    sourceSets.main {
+        jni.srcDirs = []
+    }
 }
 
 dependencies {
     implementation 'com.facebook.react:react-native:+'
-    implementation 'com.github.yalantis:ucrop:2.2.2-native'
     implementation "androidx.constraintlayout:constraintlayout:2.0.0-beta4"
+
+    implementation "androidx.appcompat:appcompat:${androidx_appcompat_version}"
+    implementation "androidx.exifinterface:exifinterface:${androidx_exifinterface_version}"
+    implementation "androidx.transition:transition:${androidx_transition_version}"
+    implementation "com.squareup.okhttp3:okhttp:3.12.1"
+
 
 
     // CameraX core library

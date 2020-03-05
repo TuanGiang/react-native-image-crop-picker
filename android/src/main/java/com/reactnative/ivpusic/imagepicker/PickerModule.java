@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -89,6 +90,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private String cropperToolbarColor = DEFAULT_TRANSPARENT;
     private String cropperToolbarTitle = null;
 
+
     //Light Blue 500
     private final String DEFAULT_WIDGET_COLOR = "#03A9F4";
 
@@ -140,6 +142,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         enableRotationGesture = options.hasKey("enableRotationGesture") && options.getBoolean("enableRotationGesture");
         disableCropperColorSetters = options.hasKey("disableCropperColorSetters") && options.getBoolean("disableCropperColorSetters");
         useFrontCamera = options.hasKey("useFrontCamera") && options.getBoolean("useFrontCamera");
+
+
+
         this.options = options;
     }
 
@@ -311,7 +316,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 dataFile = createImageFile();
             }
 
-            Intent cameraIntent = CaptureActivity.newInstance(activity, dataFile.getPath());
+            Intent cameraIntent = new Intent(intent);
 
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
                 mCameraCaptureURI = Uri.fromFile(dataFile);
@@ -655,51 +660,17 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             uCrop.withAspectRatio(width, height);
         }
 
-        Intent intent = uCrop.getIntent(activity);
-        intent.setClass(activity, CropActivity.class);
-        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
-    }
-
-    private void startCropping(final Activity activity, final Uri uri, int left, int top, int right, int bottom) {
-        UCrop.Options options = new UCrop.Options();
-        options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-        options.setCompressionQuality(100);
-        options.setCircleDimmedLayer(cropperCircleOverlay);
-        options.setFreeStyleCropEnabled(freeStyleCropEnabled);
-        options.setShowCropGrid(showCropGuidelines);
-        options.setShowCropFrame(showCropFrame);
-        options.setHideBottomControls(hideBottomControls);
-        if (cropperToolbarTitle != null) {
-            options.setToolbarTitle(cropperToolbarTitle);
-        }
-        if (enableRotationGesture) {
-            // UCropActivity.ALL = enable both rotation & scaling
-            options.setAllowedGestures(
-                    UCropActivity.ALL, // When 'scale'-tab active
-                    UCropActivity.ALL, // When 'rotate'-tab active
-                    UCropActivity.ALL  // When 'aspect ratio'-tab active
-            );
-        }
-        if (!disableCropperColorSetters) {
-            configureCropperColors(options);
-        }
-
-        UCrop uCrop = UCrop
-                .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
-                .withOptions(options);
-
-        if (width > 0 && height > 0) {
-            uCrop.withAspectRatio(width, height);
-        }
-
-        Intent intent = uCrop.getIntent(activity);
-        intent.putExtra("LEFT", left);
-        intent.putExtra("TOP", top);
-        intent.putExtra("RIGHT", right);
-        intent.putExtra("BOTTOM", bottom);
-
-        intent.setClass(activity, CropActivity.class);
-        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
+        uCrop.start(activity);
+//
+//        Intent intent = uCrop.getIntent(activity);
+//
+//        intent.putExtra("DEFAULT_LEFT", defaultLeft);
+//        intent.putExtra("DEFAULT_TOP", defaultTop);
+//        intent.putExtra("DEFAULT_RIGHT", defaultRight);
+//        intent.putExtra("DEFAULT_BOTTOM", defaultBottom);
+//
+//        intent.setClass(activity, CropActivity.class);
+//        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
     }
 
     private void imagePickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
@@ -751,11 +722,6 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         } else if (resultCode == Activity.RESULT_OK) {
             Uri uri = mCameraCaptureURI;
 
-            int left = data.getIntExtra("LEFT", 0);
-            int top = data.getIntExtra("TOP", 0);
-            int right = data.getIntExtra("RIGHT", 0);
-            int bottom = data.getIntExtra("BOTTOM", 0);
-
             if (uri == null) {
                 resultCollector.notifyProblem(E_NO_IMAGE_DATA_FOUND, "Cannot resolve image url");
                 return;
@@ -764,7 +730,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             if (cropping) {
                 UCrop.Options options = new UCrop.Options();
                 options.setCompressionFormat(Bitmap.CompressFormat.JPEG);
-                startCropping(activity, uri, left, top, right, bottom);
+                startCropping(activity, uri);
             } else {
                 try {
                     resultCollector.setWaitCount(1);
