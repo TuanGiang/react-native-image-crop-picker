@@ -77,15 +77,15 @@ public class GestureCropImageView extends CropImageView {
             mMidPntY = (event.getY(0) + event.getY(1)) / 2;
         }
 
-        mGestureDetector.onTouchEvent(event);
-
-        if (mIsScaleEnabled) {
-            mScaleDetector.onTouchEvent(event);
-        }
-
-        if (mIsRotateEnabled) {
-            mRotateDetector.onTouchEvent(event);
-        }
+//        mGestureDetector.onTouchEvent(event);
+//
+//        if (mIsScaleEnabled) {
+//            mScaleDetector.onTouchEvent(event);
+//        }
+//
+//        if (mIsRotateEnabled) {
+//            mRotateDetector.onTouchEvent(event);
+//        }
 
         if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
             setImageToWrapCropBounds();
