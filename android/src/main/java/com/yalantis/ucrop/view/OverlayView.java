@@ -70,7 +70,10 @@ public class OverlayView extends View {
     private int mTouchPointThreshold;
     private int mCropRectMinSize;
     private int mCropRectCornerTouchAreaLineLength;
-
+    private float offsetLeft = 0.05f;
+    private float offsetTop = 0.15f;
+    private float offsetRight = 0.95f;
+    private float offsetBottom = 0.4f;
     private OverlayViewChangeListener mCallback;
 
     private boolean mShouldSetupCropBounds;
@@ -230,6 +233,19 @@ public class OverlayView extends View {
             mShouldSetupCropBounds = true;
         }
     }
+    public void setDefaultRect(float offsetLeft, float offsetTop, float offsetRight, float offsetBottom) {
+        this.offsetLeft = offsetLeft;
+        this.offsetRight = offsetRight;
+        this.offsetTop = offsetTop;
+        this.offsetBottom = offsetBottom;
+        if (mThisWidth > 0) {
+            setupCropBounds();
+            postInvalidate();
+        } else {
+            mShouldSetupCropBounds = true;
+        }
+       ;
+    }
 
     /**
      * This method setups crop bounds rectangles for given aspect ratio and view size.
@@ -240,12 +256,12 @@ public class OverlayView extends View {
         if (height > mThisHeight) {
             int width = (int) (mThisHeight * mTargetAspectRatio);
             int halfDiff = (mThisWidth - width) / 2;
-            mCropViewRect.set(getPaddingLeft() + halfDiff + width * 0.2f, getPaddingTop() + mThisHeight * 0.2f,
-                    getPaddingLeft() + width * 0.8f + halfDiff, (float) (getPaddingTop() + mThisHeight * 0.8));
+            mCropViewRect.set(getPaddingLeft() + halfDiff + width * offsetLeft, getPaddingTop() + mThisHeight * offsetTop,
+                    getPaddingLeft() + width * offsetRight + halfDiff, (float) (getPaddingTop() + mThisHeight * offsetBottom));
         } else {
             int halfDiff = (mThisHeight - height) / 2;
-            mCropViewRect.set(getPaddingLeft(), getPaddingTop() + halfDiff + height * 0.3f,
-                    getPaddingLeft() + mThisWidth, getPaddingTop() + height * 0.7f + halfDiff);
+            mCropViewRect.set(getPaddingLeft() + (mThisWidth * offsetLeft), getPaddingTop() + halfDiff + height * offsetTop,
+                    getPaddingLeft() + mThisWidth * offsetRight, getPaddingTop() + height * offsetBottom + halfDiff);
         }
 
         if (mCallback != null) {
@@ -572,6 +588,8 @@ public class OverlayView extends View {
         mCropGridRowCount = a.getInt(R.styleable.ucrop_UCropView_ucrop_grid_row_count, DEFAULT_CROP_GRID_ROW_COUNT);
         mCropGridColumnCount = a.getInt(R.styleable.ucrop_UCropView_ucrop_grid_column_count, DEFAULT_CROP_GRID_COLUMN_COUNT);
     }
+
+
 
 
     @Retention(RetentionPolicy.SOURCE)

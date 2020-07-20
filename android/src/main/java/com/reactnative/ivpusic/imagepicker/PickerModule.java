@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -95,6 +94,14 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private final String DEFAULT_WIDGET_COLOR = "#03A9F4";
 
 
+    //PLUS
+    private boolean isOnlyPortrait = true;
+    private double offsetLeft = 0.0f;
+    private double offsetTop = 0.0f;
+    private double offsetRight = 0.0f;
+    private double offsetBottom = 0.0f;
+
+
     private int width = 0;
     private int height = 0;
 
@@ -143,6 +150,12 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         disableCropperColorSetters = options.hasKey("disableCropperColorSetters") && options.getBoolean("disableCropperColorSetters");
         useFrontCamera = options.hasKey("useFrontCamera") && options.getBoolean("useFrontCamera");
 
+
+        isOnlyPortrait = !options.hasKey("isOnlyPortrait") || options.getBoolean("isOnlyPortrait");
+        offsetLeft = options.hasKey("offsetLeft") ? options.getDouble("offsetLeft") : 0.0f;
+        offsetTop = options.hasKey("offsetTop") ? options.getDouble("offsetTop") : 0.0f;
+        offsetRight = options.hasKey("offsetRight") ? options.getDouble("offsetRight") : 0.0f;
+        offsetBottom = options.hasKey("offsetBottom") ? options.getDouble("offsetBottom") : 0.0f;
 
 
         this.options = options;
@@ -637,6 +650,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         options.setShowCropGrid(showCropGuidelines);
         options.setShowCropFrame(showCropFrame);
         options.setHideBottomControls(hideBottomControls);
+        options.setOffset(isOnlyPortrait, offsetLeft, offsetTop, offsetRight, offsetBottom);
         if (cropperToolbarTitle != null) {
             options.setToolbarTitle(cropperToolbarTitle);
         }
@@ -655,10 +669,10 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         UCrop uCrop = UCrop
                 .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
                 .withOptions(options);
-
-        if (width > 0 && height > 0) {
-            uCrop.withAspectRatio(width, height);
-        }
+//
+//        if (width > 0 && height > 0) {
+//            uCrop.withAspectRatio(width, height);
+//        }
 
         uCrop.start(activity);
 //

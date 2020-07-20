@@ -1,6 +1,4 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/ucrop_photobox"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -12,19 +10,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/image_view_logo"
-            android:layout_width="@dimen/ucrop_default_crop_logo_size"
-            android:layout_height="@dimen/ucrop_default_crop_logo_size"
-            android:layout_gravity="center"
-            app:srcCompat="@drawable/ucrop_vector_ic_crop"
-            tools:background="@drawable/ucrop_vector_ic_crop"
-            tools:ignore="ContentDescription,MissingPrefix" />
-
         <com.yalantis.ucrop.view.UCropView
             android:id="@+id/ucrop"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:alpha="0" />
 
     </FrameLayout>
@@ -47,12 +36,24 @@
         <TextView
             android:id="@+id/toolbar_title"
             style="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:layout_gravity="start"
             android:text="@string/ucrop_label_edit_photo"
             android:textColor="@color/ucrop_color_toolbar_widget" />
 
     </androidx.appcompat.widget.Toolbar>
+
+    <Button
+        android:id="@+id/btnSearch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/ucrop_background_action_search"
+        android:text="@string/action_search"
+        android:textColor="#fff" />
 
 </RelativeLayout>

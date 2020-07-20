@@ -12,5 +12,6 @@
     <string name="ucrop_crop">Crop</string>
 	<string name="ucrop_capture_image_message">Take a photo of your question.</string>
     <string name="ucrop_capture_image_message_leveled">Make sure the text is leveled.</string>
+    <string name="action_search">Tìm kiếm</string>
 
 </resources>

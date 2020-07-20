@@ -302,12 +302,11 @@ public class UCrop {
 
         public static final String EXTRA_UCROP_ROOT_VIEW_BACKGROUND_COLOR = EXTRA_PREFIX + ".UcropRootViewBackgroundColor";
 
-        public static final String EXTRA_DEFAULT_TOP = EXTRA_PREFIX + ".DefaultTop";
-        public static final String EXTRA_DEFAULT_LEFT = EXTRA_PREFIX + ".DefaultLeft";
-        public static final String EXTRA_DEFAULT_RIGHT  = EXTRA_PREFIX + ".DefaultRight";
-        public static final String EXTRA_DEFAULT_BOTTOM = EXTRA_PREFIX + ".DefaultBottom";
-        public static final String EXTRA_IMAGE_WIDTH  = EXTRA_PREFIX + ".ImageWidth";
-        public static final String EXTRA_IMAGE_HEIGHT = EXTRA_PREFIX + ".ImageHeight";
+        public static final String EXTRA_OFFSET_TOP = EXTRA_PREFIX + ".DefaultTop";
+        public static final String EXTRA_OFFSET_LEFT = EXTRA_PREFIX + ".DefaultLeft";
+        public static final String EXTRA_OFFSET_RIGHT  = EXTRA_PREFIX + ".DefaultRight";
+        public static final String EXTRA_OFFSET_BOTTOM = EXTRA_PREFIX + ".DefaultBottom";
+        public static final String EXTRA_ORIENTATION  = EXTRA_PREFIX + ".ORIENTATION";
 
 
         private final Bundle mOptionBundle;
@@ -361,6 +360,20 @@ public class UCrop {
         public void setImageToCropBoundsAnimDuration(@IntRange(from = MIN_SIZE) int durationMillis) {
             mOptionBundle.putInt(EXTRA_IMAGE_TO_CROP_BOUNDS_ANIM_DURATION, durationMillis);
         }
+
+
+        /**
+         * Setter for max size for both width and height of bitmap that will be decoded from an input Uri and used in the view.
+         *
+         */
+        public void setOffset(boolean isOnlyPortrait, double left, double top, double right, double bottom ) {
+            mOptionBundle.putBoolean(EXTRA_ORIENTATION, isOnlyPortrait);
+            mOptionBundle.putDouble(EXTRA_OFFSET_LEFT, left);
+            mOptionBundle.putDouble(EXTRA_OFFSET_TOP, top);
+            mOptionBundle.putDouble(EXTRA_OFFSET_RIGHT, right);
+            mOptionBundle.putDouble(EXTRA_OFFSET_BOTTOM, bottom);
+        }
+
 
         /**
          * Setter for max size for both width and height of bitmap that will be decoded from an input Uri and used in the view.
