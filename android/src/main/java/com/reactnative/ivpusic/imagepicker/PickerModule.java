@@ -31,6 +31,7 @@ import com.facebook.react.modules.core.PermissionAwareActivity;
 import com.facebook.react.modules.core.PermissionListener;
 import com.yalantis.ucrop.UCrop;
 import com.yalantis.ucrop.UCropActivity;
+import com.yalantis.ucrop.util.BitmapLoadUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -666,13 +667,15 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             configureCropperColors(options);
         }
 
+
+        if (width > 0 && height > 0) {
+            int maxSize = BitmapLoadUtils.calculateMaxBitmapSize(width, height);
+            options.setMaxBitmapSize(maxSize);
+        }
+
         UCrop uCrop = UCrop
                 .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
                 .withOptions(options);
-//
-//        if (width > 0 && height > 0) {
-//            uCrop.withAspectRatio(width, height);
-//        }
 
         uCrop.start(activity);
 //

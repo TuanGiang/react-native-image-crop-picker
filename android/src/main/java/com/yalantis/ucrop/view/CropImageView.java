@@ -8,6 +8,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.reactnative.ivpusic.imagepicker.R;
 import com.yalantis.ucrop.callback.BitmapCropCallback;
@@ -274,9 +275,10 @@ public class CropImageView extends TransformImageView {
      * Scale value must be calculated only if image won't fill the crop bounds after it's translated to the
      * crop bounds rectangle center. Using temporary variables this method checks this case.
      */
+    private static final String TAG = "CropImageView";
     public void setImageToWrapCropBounds(boolean animate) {
         if (mBitmapLaidOut && !isImageWrapCropBounds()) {
-
+            Log.i(TAG, "setImageToWrapCropBounds: " + "1");
             float currentX = mCurrentImageCenter[0];
             float currentY = mCurrentImageCenter[1];
             float currentScale = getCurrentScale();
@@ -294,10 +296,14 @@ public class CropImageView extends TransformImageView {
             boolean willImageWrapCropBoundsAfterTranslate = isImageWrapCropBounds(tempCurrentImageCorners);
 
             if (willImageWrapCropBoundsAfterTranslate) {
+
                 final float[] imageIndents = calculateImageIndents();
                 deltaX = -(imageIndents[0] + imageIndents[2]);
                 deltaY = -(imageIndents[1] + imageIndents[3]);
+
+                Log.i(TAG, "setImageToWrapCropBounds: " + "2" +" deltaX: " + deltaX + " deltaY: " + deltaY);
             } else {
+                Log.i(TAG, "setImageToWrapCropBounds: " + "3");
                 RectF tempCropRect = new RectF(mCropRect);
                 mTempMatrix.reset();
                 mTempMatrix.setRotate(getCurrentAngle());
@@ -308,6 +314,8 @@ public class CropImageView extends TransformImageView {
                 deltaScale = Math.max(tempCropRect.width() / currentImageSides[0],
                         tempCropRect.height() / currentImageSides[1]);
                 deltaScale = deltaScale * currentScale - currentScale;
+
+                Log.i(TAG, "setImageToWrapCropBounds: " + "4 " + deltaScale);
             }
 
             if (animate) {

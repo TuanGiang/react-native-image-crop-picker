@@ -131,17 +131,25 @@ public class BitmapLoadUtils {
     public static int calculateMaxBitmapSize(@NonNull Context context) {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display;
-        int width, height;
         Point size = new Point();
 
         if (wm != null) {
             display = wm.getDefaultDisplay();
             display.getSize(size);
         }
+        return  calculateMaxBitmapSize(size.x, size.y);
+    }
 
-        width = size.x;
-        height = size.y;
 
+    /**
+     * This method calculates maximum size of both width and height of bitmap.
+     * It is twice the device screen diagonal for default implementation (extra quality to zoom image).
+     * Size cannot exceed max texture size.
+     *
+     * @return - max bitmap size in pixels.
+     */
+    @SuppressWarnings({"SuspiciousNameCombination", "deprecation"})
+    public static int calculateMaxBitmapSize(int width, int height) {
         // Twice the device screen diagonal as default
         int maxBitmapSize = (int) Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2));
 
