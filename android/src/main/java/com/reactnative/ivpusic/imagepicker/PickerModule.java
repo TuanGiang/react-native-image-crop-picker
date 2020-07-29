@@ -667,10 +667,12 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             configureCropperColors(options);
         }
 
-
         if (width > 0 && height > 0) {
             int maxSize = BitmapLoadUtils.calculateMaxBitmapSize(width, height);
-            options.setMaxBitmapSize(maxSize);
+            int defaultMaxSize = BitmapLoadUtils.calculateMaxBitmapSize(reactContext);
+            if (maxSize > defaultMaxSize) {
+                options.setMaxBitmapSize((maxSize + defaultMaxSize) / 2);
+            }
         }
 
         UCrop uCrop = UCrop
