@@ -106,6 +106,12 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private int width = 0;
     private int height = 0;
 
+
+    private int compressImageMaxWidth = 0;
+    private int compressImageMaxHeight = 0;
+    private double compressImageQuality = 0;
+
+
     private Uri mCameraCaptureURI;
     private String mCurrentMediaPath;
     private ResultCollector resultCollector = new ResultCollector();
@@ -158,6 +164,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         offsetRight = options.hasKey("offsetRight") ? options.getDouble("offsetRight") : 0.0f;
         offsetBottom = options.hasKey("offsetBottom") ? options.getDouble("offsetBottom") : 0.0f;
 
+        compressImageMaxWidth = options.hasKey("compressImageMaxWidth") ? options.getInt("compressImageMaxWidth") : 0;
+        compressImageMaxHeight = options.hasKey("compressImageMaxHeight") ? options.getInt("compressImageMaxHeight") : 0;
+        compressImageQuality = options.hasKey("compressImageQuality") ? options.getDouble("compressImageQuality") : 0.0;
 
         this.options = options;
     }
@@ -592,24 +601,24 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         if (path.startsWith("http://") || path.startsWith("https://")) {
             throw new Exception("Cannot select remote files");
         }
-        BitmapFactory.Options original = validateImage(path);
+       // BitmapFactory.Options original = validateImage(path);
 
         // if compression options are provided image will be compressed. If none options is provided,
         // then original image will be returned
-        File compressedImage = compression.compressImage(options, path, original);
-        String compressedImagePath = compressedImage.getPath();
-        BitmapFactory.Options options = validateImage(compressedImagePath);
+//        File compressedImage = compression.compressImage(options, path, original);
+//        String compressedImagePath = compressedImage.getPath();
+        BitmapFactory.Options options = validateImage(path);
         long modificationDate = new File(path).lastModified();
 
-        image.putString("path", "file://" + compressedImagePath);
+        image.putString("path", "file://" + path);
         image.putInt("width", options.outWidth);
         image.putInt("height", options.outHeight);
         image.putString("mime", options.outMimeType);
-        image.putInt("size", (int) new File(compressedImagePath).length());
+        image.putInt("size", (int) new File(path).length());
         image.putString("modificationDate", String.valueOf(modificationDate));
 
         if (includeBase64) {
-            image.putString("data", getBase64StringFromFile(compressedImagePath));
+            image.putString("data", getBase64StringFromFile(path));
         }
 
         if (includeExif) {
@@ -674,6 +683,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 options.setMaxBitmapSize((maxSize + defaultMaxSize) / 2);
             }
         }
+        options.setMaxSize(compressImageMaxWidth, compressImageMaxHeight, compressImageQuality);
 
         UCrop uCrop = UCrop
                 .of(uri, Uri.fromFile(new File(this.getTmpDir(activity), UUID.randomUUID().toString() + ".jpg")))
@@ -772,9 +782,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
             if (resultUri != null) {
                 try {
-                    if (width > 0 && height > 0) {
-                        resultUri = Uri.fromFile(compression.resize(resultUri.getPath(), width, height, 100));
-                    }
+//                    if (width > 0 && height > 0) {
+//                        resultUri = Uri.fromFile(compression.resize(resultUri.getPath(), width, height, 100));
+//                    }
 
                     WritableMap result = getSelection(activity, resultUri, false);
 

@@ -30,6 +30,7 @@ import android.widget.TextView;
 import com.reactnative.ivpusic.imagepicker.R;
 import com.yalantis.ucrop.callback.BitmapCropCallback;
 import com.yalantis.ucrop.model.AspectRatio;
+import com.yalantis.ucrop.util.Compression;
 import com.yalantis.ucrop.util.SelectedStateListDrawable;
 import com.yalantis.ucrop.view.CropImageView;
 import com.yalantis.ucrop.view.GestureCropImageView;
@@ -39,6 +40,7 @@ import com.yalantis.ucrop.view.UCropView;
 import com.yalantis.ucrop.view.widget.AspectRatioTextView;
 import com.yalantis.ucrop.view.widget.HorizontalProgressWheelView;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
@@ -119,6 +121,10 @@ public class UCropActivity extends AppCompatActivity {
     private int mCompressQuality = DEFAULT_COMPRESS_QUALITY;
     private int[] mAllowedGestures = new int[]{SCALE, ROTATE, ALL};
 
+    private int compressImageMaxWidth = 0;
+    private int compressImageMaxHeight = 0;
+    private double compressImageQuality = 0;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -128,6 +134,7 @@ public class UCropActivity extends AppCompatActivity {
         final Intent intent = getIntent();
 
         setupViews(intent);
+        setScaleImage(intent);
         setImageData(intent);
         setInitialState();
         addBlockingView();
@@ -136,6 +143,12 @@ public class UCropActivity extends AppCompatActivity {
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
 
+    }
+
+    private void setScaleImage(Intent intent) {
+        compressImageMaxWidth = intent.getIntExtra(UCrop.Options.EXTRA_MAX_WIDTH, 0);
+        compressImageMaxHeight = intent.getIntExtra(UCrop.Options.EXTRA_MAX_HEIGHT, 0);
+        compressImageQuality = intent.getDoubleExtra(UCrop.Options.EXTRA_MAX_QUALITY, 0.0);
     }
 
     @Override
@@ -681,8 +694,7 @@ public class UCropActivity extends AppCompatActivity {
 
             @Override
             public void onBitmapCropped(@NonNull Uri resultUri, int offsetX, int offsetY, int imageWidth, int imageHeight) {
-                setResultUri(resultUri, mGestureCropImageView.getTargetAspectRatio(), offsetX, offsetY, imageWidth, imageHeight);
-                finish();
+                scaleImage(resultUri, offsetX, offsetY, imageWidth, imageHeight);
             }
 
             @Override
@@ -691,6 +703,22 @@ public class UCropActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void scaleImage(Uri resultUri, int offsetX, int offsetY, int imageWidth, int imageHeight) {
+        if ((compressImageMaxWidth > 0 && imageWidth > compressImageMaxWidth) || (compressImageMaxHeight > 0 && imageHeight > compressImageMaxHeight)) {
+            try {
+                Uri scaleResultUri = Uri.fromFile(Compression.resize(resultUri.getPath(), compressImageMaxWidth, compressImageMaxHeight, 100));
+                setResultUri(scaleResultUri, mGestureCropImageView.getTargetAspectRatio(), offsetX, offsetY, imageWidth, imageHeight);
+                finish();
+            } catch (IOException e) {
+                setResultError(e);
+                finish();
+            }
+        } else {
+            setResultUri(resultUri, mGestureCropImageView.getTargetAspectRatio(), offsetX, offsetY, imageWidth, imageHeight);
+            finish();
+        }
     }
 
     protected void setResultUri(Uri uri, float resultAspectRatio, int offsetX, int offsetY, int imageWidth, int imageHeight) {

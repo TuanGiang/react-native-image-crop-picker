@@ -53,6 +53,8 @@ public class UCrop {
     public static final String EXTRA_MAX_SIZE_X = EXTRA_PREFIX + ".MaxSizeX";
     public static final String EXTRA_MAX_SIZE_Y = EXTRA_PREFIX + ".MaxSizeY";
 
+
+
     private Intent mCropIntent;
     private Bundle mCropOptionsBundle;
 
@@ -308,6 +310,10 @@ public class UCrop {
         public static final String EXTRA_OFFSET_BOTTOM = EXTRA_PREFIX + ".DefaultBottom";
         public static final String EXTRA_ORIENTATION  = EXTRA_PREFIX + ".ORIENTATION";
 
+        public static final String EXTRA_MAX_WIDTH = EXTRA_PREFIX + ".MaxWidth";
+        public static final String EXTRA_MAX_HEIGHT = EXTRA_PREFIX + ".MaxHeight";
+        public static final String EXTRA_MAX_QUALITY = EXTRA_PREFIX + ".MaxQuality";
+
 
         private final Bundle mOptionBundle;
 
@@ -372,6 +378,15 @@ public class UCrop {
             mOptionBundle.putDouble(EXTRA_OFFSET_TOP, top);
             mOptionBundle.putDouble(EXTRA_OFFSET_RIGHT, right);
             mOptionBundle.putDouble(EXTRA_OFFSET_BOTTOM, bottom);
+        }
+
+        /**
+         * Setter for max size for both width and height of bitmap that will be decoded from an input Uri and used in the view.
+         */
+        public void setMaxSize(int maxWidth, int maxHeight, double quality) {
+            mOptionBundle.putInt(EXTRA_MAX_WIDTH, maxWidth);
+            mOptionBundle.putInt(EXTRA_MAX_HEIGHT, maxHeight);
+            mOptionBundle.putDouble(EXTRA_MAX_QUALITY, quality);
         }
 
 
