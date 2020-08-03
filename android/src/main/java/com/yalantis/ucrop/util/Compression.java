@@ -75,6 +75,7 @@ public class Compression {
         return resizeImageFile;
     }
 
+
     private static int getRotationInDegreesForOrientationTag(int orientationTag) {
         switch(orientationTag){
             case ExifInterface.ORIENTATION_ROTATE_90:

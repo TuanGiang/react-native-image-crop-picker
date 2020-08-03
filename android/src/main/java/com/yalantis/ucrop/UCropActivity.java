@@ -708,7 +708,22 @@ public class UCropActivity extends AppCompatActivity {
     private void scaleImage(Uri resultUri, int offsetX, int offsetY, int imageWidth, int imageHeight) {
         if ((compressImageMaxWidth > 0 && imageWidth > compressImageMaxWidth) || (compressImageMaxHeight > 0 && imageHeight > compressImageMaxHeight)) {
             try {
-                Uri scaleResultUri = Uri.fromFile(Compression.resize(resultUri.getPath(), compressImageMaxWidth, compressImageMaxHeight, 100));
+                int finalWidth;
+                int finalHeight;
+
+                if (compressImageMaxWidth == 0) {
+                    finalWidth = imageWidth;
+                } else {
+                    finalWidth = Math.min(compressImageMaxWidth, imageWidth);
+                }
+
+                if (compressImageMaxHeight == 0) {
+                    finalHeight = imageHeight;
+                } else {
+                    finalHeight = Math.min(compressImageMaxHeight, imageHeight);
+                }
+
+                Uri scaleResultUri = Uri.fromFile(Compression.resize(resultUri.getPath(), finalWidth, finalHeight, 100));
                 setResultUri(scaleResultUri, mGestureCropImageView.getTargetAspectRatio(), offsetX, offsetY, imageWidth, imageHeight);
                 finish();
             } catch (IOException e) {

@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -106,6 +107,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
     private int width = 0;
     private int height = 0;
 
+    private int originalWidth = 0;
+    private int originalHeight = 0;
+
 
     private int compressImageMaxWidth = 0;
     private int compressImageMaxHeight = 0;
@@ -163,6 +167,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         offsetTop = options.hasKey("offsetTop") ? options.getDouble("offsetTop") : 0.0f;
         offsetRight = options.hasKey("offsetRight") ? options.getDouble("offsetRight") : 0.0f;
         offsetBottom = options.hasKey("offsetBottom") ? options.getDouble("offsetBottom") : 0.0f;
+
+        originalWidth = options.hasKey("originalWidth") ? options.getInt("originalWidth") : 0;
+        originalHeight = options.hasKey("originalHeight") ? options.getInt("originalHeight") : 0;
 
         compressImageMaxWidth = options.hasKey("compressImageMaxWidth") ? options.getInt("compressImageMaxWidth") : 0;
         compressImageMaxHeight = options.hasKey("compressImageMaxHeight") ? options.getInt("compressImageMaxHeight") : 0;
@@ -676,7 +683,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             configureCropperColors(options);
         }
 
-        if (width > 0 && height > 0) {
+        if (originalWidth > 0 && originalHeight > 0) {
             int maxSize = BitmapLoadUtils.calculateMaxBitmapSize(width, height);
             int defaultMaxSize = BitmapLoadUtils.calculateMaxBitmapSize(reactContext);
             if (maxSize > defaultMaxSize) {
@@ -690,16 +697,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                 .withOptions(options);
 
         uCrop.start(activity);
-//
-//        Intent intent = uCrop.getIntent(activity);
-//
-//        intent.putExtra("DEFAULT_LEFT", defaultLeft);
-//        intent.putExtra("DEFAULT_TOP", defaultTop);
-//        intent.putExtra("DEFAULT_RIGHT", defaultRight);
-//        intent.putExtra("DEFAULT_BOTTOM", defaultBottom);
-//
-//        intent.setClass(activity, CropActivity.class);
-//        activity.startActivityForResult(intent, UCrop.REQUEST_CROP);
+
     }
 
     private void imagePickerResult(Activity activity, final int requestCode, final int resultCode, final Intent data) {
@@ -782,9 +780,9 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
 
             if (resultUri != null) {
                 try {
-//                    if (width > 0 && height > 0) {
-//                        resultUri = Uri.fromFile(compression.resize(resultUri.getPath(), width, height, 100));
-//                    }
+                    if (width > 0 && height > 0) {
+                        resultUri = Uri.fromFile(compression.resize(resultUri.getPath(), width, height, 100));
+                    }
 
                     WritableMap result = getSelection(activity, resultUri, false);
 
