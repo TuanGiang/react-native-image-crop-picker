@@ -46,7 +46,7 @@ public class Compression {
         int finalWidth = maxWidth;
         int finalHeight = maxHeight;
 
-        if (ratioMax > 1) {
+        if (ratioMax > ratioBitmap) {
             finalWidth = (int) ((float) maxHeight * ratioBitmap);
         } else {
             finalHeight = (int) ((float) maxWidth / ratioBitmap);
